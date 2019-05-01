@@ -25,7 +25,7 @@ public class FreeFallingBallGame extends ApplicationAdapter {
     private Rectangle ball;
     private Array<Rectangle> obstacles;
     private long lastObstacleTime;
-
+    private int count = 0;
 	
 	@Override
 	public void create () {
@@ -43,8 +43,8 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		ball = new Rectangle();
 		ball.x = 480 / 2 - 128 / 2;
 		ball.y = 800 / 2;
-		ball.width = 128;
-		ball.height = 128;
+		ball.width = 95;
+		ball.height = 95;
 
 		obstacles = new Array<Rectangle>();
 		spawnObstacle();
@@ -55,10 +55,10 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		Rectangle obstacle = new Rectangle();
 		obstacle.x = MathUtils.random(0, 480 - 256);
 		obstacle.y = 0;
-		obstacle.width = 256;
-		obstacle.height = 256;
+		obstacle.width = 200;
+		obstacle.height = 95;
 		obstacles.add(obstacle);
-		lastObstacleTime = TimeUtils.nanoTime();
+		lastObstacleTime = TimeUtils.millis();
 	}
 
 	@Override
@@ -77,25 +77,37 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		}
 		batch.end();
 
-		if(Gdx.input.isTouched()) {
+		if (Gdx.input.isTouched()) {
 			Vector3 touchPos = new Vector3();
 			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchPos);
 			ball.x = touchPos.x - 128 / 2;
 		}
 
-		if(ball.x < 0) ball.x = 0;
-		if(ball.x > 480 - 128) ball.x = 480 - 128;
+		if (ball.x < 0) {
+		    ball.x = 0;
+        }
+		if (ball.x > 480 - 128) {
+		    ball.x = 480 - 128;
+        }
 
-		if(TimeUtils.nanoTime() - lastObstacleTime > 1000000000) spawnObstacle();
+		if (TimeUtils.millis() - lastObstacleTime > 14000) {
+		    spawnObstacle();
+        }
 
 		for (Iterator<Rectangle> off = obstacles.iterator(); off.hasNext();) {
 			Rectangle obstacle = off.next();
 			obstacle.y += 50 * Gdx.graphics.getDeltaTime();
-			if(obstacle.y - 256 > 800) off.remove();
-			if(obstacle.overlaps(ball)) {
+			if (obstacle.y - 256 > 800) {
+				off.remove();
+				count++;
+			}
+			if (count == 5) {
+				levelup.play();
+				count = count - 5;
+			}
+			if (obstacle.overlaps(ball)) {
 				impact.play();
-				break;
 			}
 		}
 
