@@ -7,10 +7,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+
+import java.util.Iterator;
 
 public class FreeFallingBallGame extends ApplicationAdapter {
     private Texture ballImage;
@@ -43,6 +46,19 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		ball.width = 128;
 		ball.height = 128;
 
+		obstacles = new Array<Rectangle>();
+		spawnObstacle();
+
+	}
+
+	private void spawnObstacle() {
+		Rectangle obstacle = new Rectangle();
+		obstacle.x = MathUtils.random(0, 480 - 256);
+		obstacle.y = 0;
+		obstacle.width = 256;
+		obstacle.height = 256;
+		obstacles.add(obstacle);
+		lastObstacleTime = TimeUtils.nanoTime();
 	}
 
 	@Override
@@ -56,6 +72,9 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 
 		batch.begin();
 		batch.draw(ballImage, ball.x, ball.y);
+		for (Rectangle obstacle: obstacles) {
+			batch.draw(obstacleImage, obstacle.x, obstacle.y);
+		}
 		batch.end();
 
 		if(Gdx.input.isTouched()) {
@@ -68,10 +87,26 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		if(ball.x < 0) ball.x = 0;
 		if(ball.x > 480 - 128) ball.x = 480 - 128;
 
+		if(TimeUtils.nanoTime() - lastObstacleTime > 1000000000) spawnObstacle();
+
+		for (Iterator<Rectangle> off = obstacles.iterator(); off.hasNext();) {
+			Rectangle obstacle = off.next();
+			obstacle.y += 50 * Gdx.graphics.getDeltaTime();
+			if(obstacle.y - 256 > 800) off.remove();
+			if(obstacle.overlaps(ball)) {
+				impact.play();
+				break;
+			}
+		}
+
 	}
 	
 	@Override
 	public void dispose () {
-
+		ballImage.dispose();
+		obstacleImage.dispose();
+		levelup.dispose();
+		impact.dispose();
+		batch.dispose();
 	}
 }
