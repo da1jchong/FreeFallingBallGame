@@ -9,22 +9,28 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class FreeFallingBallGame extends ApplicationAdapter {
     private Texture ballImage;
+	private Texture obstacleImage;
     private Sound levelup;
     private Sound impact;
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private Rectangle ball;
+    private Array<Rectangle> obstacles;
+    private long lastObstacleTime;
 
 	
 	@Override
 	public void create () {
 		ballImage = new Texture(Gdx.files.internal("redBall.jpg"));
+		obstacleImage = new Texture(Gdx.files.internal("obstacle.png"));
 
 		impact = Gdx.audio.newSound(Gdx.files.internal("ballimpact.wav"));
-		levelup = Gdx.audio.newSound(Gdx.files.internal("bell.wave"));
+		levelup = Gdx.audio.newSound(Gdx.files.internal("bell.wav"));
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 480, 800);
@@ -47,6 +53,7 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 		camera.update();
 
 		batch.setProjectionMatrix(camera.combined);
+
 		batch.begin();
 		batch.draw(ballImage, ball.x, ball.y);
 		batch.end();
@@ -57,6 +64,9 @@ public class FreeFallingBallGame extends ApplicationAdapter {
 			camera.unproject(touchPos);
 			ball.x = touchPos.x - 128 / 2;
 		}
+
+		if(ball.x < 0) ball.x = 0;
+		if(ball.x > 480 - 128) ball.x = 480 - 128;
 
 	}
 	
